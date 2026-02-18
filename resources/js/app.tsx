@@ -1,0 +1,148 @@
+import '../css/app.css';
+import '../css/dark-mode.css';
+
+import { createInertiaApp, router } from '@inertiajs/react';
+import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
+import { createRoot } from 'react-dom/client';
+import { lazy, Suspense } from 'react';
+import { LayoutProvider } from './contexts/LayoutContext';
+import { SidebarProvider } from './contexts/SidebarContext';
+import { BrandProvider } from './contexts/BrandContext';
+import { ModalStackProvider } from './contexts/ModalStackContext';
+import { initializeTheme } from './hooks/use-appearance';
+import { CustomToast } from './components/custom-toast';
+import { Loader } from './components/ui/loader';
+import { initializeGlobalSettings } from './utils/globalSettings';
+import { initPerformanceMonitoring, lazyLoadImages } from './utils/performance';
+import './i18n'; // Import i18n configuration
+import './utils/axios-config'; // Import axios configuration
+
+// Initialize performance monitoring
+initPerformanceMonitoring();
+
+// Initialize lazy loading of images when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    lazyLoadImages();
+});
+
+// Add event listener for theme changes
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    // Re-apply theme when system preference changes
+    const savedTheme = localStorage.getItem('themeSettings');
+    if (savedTheme) {
+        const themeSettings = JSON.parse(savedTheme);
+        if (themeSettings.appearance === 'system') {
+            initializeTheme();
+        }
+    }
+});
+
+const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+
+createInertiaApp({
+    title: (title) => title ? `${title} - ${appName}` : appName,    
+    resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
+    setup({ el, App, props }) {
+        const root = createRoot(el);
+        
+        // Make page data globally available for axios interceptor
+        try {
+            (window as any).page = props.initialPage;
+        } catch (e) {
+            console.warn('Could not set global page data:', e);
+        }
+        
+        // Set demo mode globally
+        try {
+            (window as any).isDemo = props.initialPage.props?.is_demo || false;
+        } catch (e) {
+            // Ignore errors
+        }
+        
+        // Initialize global settings from shared data
+        const globalSettings = props.initialPage.props.globalSettings || {};
+        if (Object.keys(globalSettings).length > 0) {
+            initializeGlobalSettings(globalSettings);
+        }
+        
+        // Always initialize theme with available settings
+        initializeTheme(globalSettings);
+
+        // Create a memoized render function to prevent unnecessary re-renders
+        const renderApp = (appProps: any) => {
+            const currentGlobalSettings = appProps.initialPage.props.globalSettings || {};
+            const user = appProps.initialPage.props.auth?.user;
+            
+            return (
+                <ModalStackProvider>
+                    <LayoutProvider>
+                        <SidebarProvider>
+                            <BrandProvider globalSettings={currentGlobalSettings} user={user}>
+                                <Suspense fallback={
+                                    <div className="flex h-screen w-full items-center justify-center bg-background">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <Loader size="lg" />
+                                            <p className="text-sm text-muted-foreground font-medium">Loading...</p>
+                                        </div>
+                                    </div>
+                                }>
+                                    <App {...appProps} />
+                                </Suspense>
+                                <CustomToast />
+                            </BrandProvider>
+                        </SidebarProvider>
+                    </LayoutProvider>
+                </ModalStackProvider>
+            );
+        };
+        
+        // Initial render
+        root.render(renderApp(props));
+        
+        // Update global page data on navigation and re-render with new settings
+        router.on('navigate', (event) => {
+            try {
+                (window as any).page = event.detail.page;
+                // Re-render with updated props including globalSettings
+                root.render(renderApp({ initialPage: event.detail.page }));
+                
+                // Force dark mode check on navigation
+                const savedTheme = localStorage.getItem('themeSettings');
+                if (savedTheme) {
+                    const themeSettings = JSON.parse(savedTheme);
+                    const isDark = themeSettings.appearance === 'dark' || 
+                        (themeSettings.appearance === 'system' && 
+                         window.matchMedia('(prefers-color-scheme: dark)').matches);
+                    document.documentElement.classList.toggle('dark', isDark);
+                    document.body.classList.toggle('dark', isDark);
+                }
+            } catch (e) {
+                console.error('Navigation error:', e);
+            }
+        });
+    },
+    progress: {
+        color: '#4B5563',
+    },
+});
+
+// Fallback theme initialization if no global settings are available
+if (typeof window !== 'undefined') {
+    // Check if we have global settings available
+    const hasGlobalSettings = window.appSettings || document.querySelector('meta[name="global-settings"]');
+    if (!hasGlobalSettings) {
+        initializeTheme();
+    }
+}
+
+// Initialize direction from localStorage if available
+const initializeDirection = () => {
+    const savedDirection = localStorage.getItem('layoutDirection');
+    if (savedDirection) {
+        document.documentElement.dir = savedDirection;
+        document.documentElement.setAttribute('dir', savedDirection);
+    }
+};
+
+// Initialize direction on page load
+initializeDirection();

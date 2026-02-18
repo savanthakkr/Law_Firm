@@ -1,0 +1,154 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Plan;
+use App\Models\User;
+use App\Models\Setting;
+use App\Models\PlanOrder;
+use App\Models\PaymentSetting;
+use App\Models\Invoice;
+use App\Models\Payment;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Stripe\Stripe;
+use Stripe\PaymentIntent;
+
+class StripePaymentController extends Controller
+{
+    public function processPayment(Request $request)
+    {
+        $validated = validatePaymentRequest($request, [
+            'payment_method_id' => 'required|string',
+            'cardholder_name' => 'required|string',
+        ]);
+
+        try {
+            $plan = Plan::findOrFail($validated['plan_id']);
+            $pricing = calculatePlanPricing($plan, $validated['coupon_code'] ?? null, $validated['billing_cycle']);
+            $settings = getPaymentGatewaySettings();
+            
+            if (!isset($settings['payment_settings']['stripe_secret']) || !isset($settings['payment_settings']['stripe_key'])) {
+                return back()->withErrors(['error' => __('Stripe not configured')]);
+            }
+
+            $stripeSecret = $settings['payment_settings']['stripe_secret'];
+            if (!str_starts_with($stripeSecret, 'sk_')) {
+                return back()->withErrors(['error' => __('Invalid Stripe secret key format')]);
+            }
+
+            Stripe::setApiKey($stripeSecret);
+
+            $paymentIntent = PaymentIntent::create([
+                'amount' => $pricing['final_price'] * 100,
+                'currency' => $settings['general_settings']['defaultCurrency'] ?? 'usd',
+                'payment_method' => $validated['payment_method_id'],
+                'confirmation_method' => 'manual',
+                'confirm' => true,
+                'return_url' => route('plans.index'),
+            ]);
+        // need to check the status of payment intent
+            
+            //print_r($paymentIntent); // Debugging line to inspect the payment intent object
+           // dd('Stopped for debugging');
+
+            if ($paymentIntent->status === 'requires_action') {
+                if ($paymentIntent->next_action->type === 'redirect_to_url') {
+                    return response()->json([
+                        'requires_action' => true,
+                        'redirect_url' => $paymentIntent->next_action->redirect_to_url->url
+                    ]);
+                } else {
+                    return response()->json([
+                        'requires_action' => true,
+                        'payment_intent' => [
+                            'id' => $paymentIntent->id,
+                            'client_secret' => $paymentIntent->client_secret
+                        ]
+                    ]);
+                }
+            }
+
+
+            if ($paymentIntent->status === 'succeeded') {
+                processPaymentSuccess([
+                    'user_id' => auth()->id(),
+                    'plan_id' => $plan->id,
+                    'billing_cycle' => $validated['billing_cycle'],
+                    'payment_method' => 'stripe',
+                    'coupon_code' => $validated['coupon_code'] ?? null,
+                    'payment_id' => $paymentIntent->id,
+                ]);
+
+                return back()->with('success', __('Payment successful and plan activated'));
+            }
+
+            return back()->withErrors(['error' => __('Payment failed')]);
+
+        } catch (\Exception $e) {
+            return handlePaymentError($e, 'stripe');
+        }
+    }
+    
+    public function processInvoicePayment(Request $request)
+    {
+        $request->validate([
+            'invoice_token' => 'required|string',
+            'amount' => 'required|numeric|min:0',
+            'payment_method_id' => 'required|string',
+            'cardholder_name' => 'required|string',
+        ]);
+        
+        try {
+            $invoice = Invoice::where('payment_token', $request->invoice_token)->firstOrFail();
+            $settings = getPaymentGatewaySettings();
+            
+            Stripe::setApiKey($settings['payment_settings']['stripe_secret']);
+            
+            $paymentIntent = PaymentIntent::create([
+                'amount' => $request->amount * 100,
+                'currency' => 'usd',
+                'payment_method' => $request->payment_method_id,
+                'confirmation_method' => 'manual',
+                'confirm' => true,
+                'return_url' => route('invoice.payment.success', $invoice->payment_token),
+            ]);
+            
+            if ($paymentIntent->status === 'requires_action') {
+                if ($paymentIntent->next_action->type === 'redirect_to_url') {
+                    return response()->json([
+                        'requires_action' => true,
+                        'redirect_url' => $paymentIntent->next_action->redirect_to_url->url
+                    ]);
+                } else {
+                    return response()->json([
+                        'requires_action' => true,
+                        'payment_intent' => [
+                            'id' => $paymentIntent->id,
+                            'client_secret' => $paymentIntent->client_secret
+                        ]
+                    ]);
+                }
+            }
+
+            if ($paymentIntent->status === 'succeeded') {
+                Payment::create([
+                    'invoice_id' => $invoice->id,
+                    'amount' => $request->amount,
+                    'payment_method' => 'stripe',
+                    'payment_id' => $paymentIntent->id,
+                    'status' => 'completed',
+                    'payment_date' => now(),
+                    'created_by' => $invoice->created_by
+                ]);
+                
+                return response()->json(['success' => true, 'message' => __('Payment successful')]);
+            }
+            
+            return response()->json(['success' => false, 'message' => __('Payment failed')]);
+            
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Payment processing failed: ' . $e->getMessage()]);
+        }
+    }
+}

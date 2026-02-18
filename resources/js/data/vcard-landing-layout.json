@@ -1,0 +1,239 @@
+[
+  {
+    "id": "header-1",
+    "type": "header",
+    "name": "Header",
+    "icon": "Navigation",
+    "config": {
+      "logo": "advocate",
+      "menuItems": ["Features", "Pricing", "Templates", "Support"],
+      "buttonText": "Get Started Free"
+    }
+  },
+  {
+    "id": "hero-1",
+    "type": "hero",
+    "name": "Hero Section",
+    "icon": "Layout",
+    "config": {
+      "variant": "variant3",
+      "title": "Create Professional Digital Business Cards in Minutes",
+      "subtitle": "Transform your networking with smart vCards. Share your contact info instantly via QR code, NFC, or link. No app required for recipients.",
+      "buttonText": "Create Your vCard",
+      "buttonUrl": "/register",
+      "announcement": "New: Advanced vCard Analytics & NFC Integration"
+    }
+  },
+  {
+    "id": "features-1",
+    "type": "features",
+    "name": "Features",
+    "icon": "Star",
+    "config": {
+      "title": "Everything You Need for Modern Networking",
+      "items": [
+        {
+          "icon": "Zap",
+          "title": "Instant Sharing",
+          "description": "Share your contact details with a simple tap, scan, or click. Works on any device."
+        },
+        {
+          "icon": "Shield",
+          "title": "Always Updated",
+          "description": "Update your info once and it reflects everywhere. No more outdated business cards."
+        },
+        {
+          "icon": "Users",
+          "title": "Contact Management",
+          "description": "Track who viewed your card and manage your professional network efficiently."
+        },
+        {
+          "icon": "Grid3X3",
+          "title": "Custom Templates",
+          "description": "Choose from 50+ professional templates or create your own unique design."
+        },
+        {
+          "icon": "MousePointer",
+          "title": "Analytics Dashboard",
+          "description": "See how many people viewed your card and track your networking success."
+        },
+        {
+          "icon": "Briefcase",
+          "title": "Team Management",
+          "description": "Create and manage vCards for your entire team from one central dashboard."
+        }
+      ]
+    }
+  },
+  {
+    "id": "about-1",
+    "type": "about",
+    "name": "About",
+    "icon": "Image",
+    "config": {
+      "title": "Why Choose advocate?",
+      "description": "Join over 50,000+ professionals who've revolutionized their networking. Our platform combines cutting-edge technology with intuitive design to make professional networking effortless and effective.",
+      "buttonText": "Learn More"
+    }
+  },
+  {
+    "id": "services-1",
+    "type": "services",
+    "name": "Services",
+    "icon": "DollarSign",
+    "config": {
+      "title": "Choose Your Perfect Plan",
+      "services": [
+        {
+          "title": "Starter",
+          "description": "Perfect for individuals starting their networking journey",
+          "price": "Free",
+          "features": [
+            "1 Digital Business Card",
+            "Basic Templates",
+            "QR Code Sharing",
+            "Basic Analytics",
+            "Email Support"
+          ]
+        },
+        {
+          "title": "Professional",
+          "description": "Ideal for professionals and entrepreneurs",
+          "price": "$9",
+          "features": [
+            "5 Digital Business Cards",
+            "Premium Templates",
+            "QR Code + NFC Sharing",
+            "Advanced Analytics",
+            "Custom Branding",
+            "Priority Support",
+            "Lead Capture Forms"
+          ]
+        },
+        {
+          "title": "Business",
+          "description": "Perfect for teams and growing businesses",
+          "price": "$29",
+          "features": [
+            "Unlimited Business Cards",
+            "Team Management",
+            "White-label Solution",
+            "API Access",
+            "Advanced Integrations",
+            "Dedicated Support",
+            "Custom Development"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "testimonials-1",
+    "type": "testimonials",
+    "name": "Testimonials",
+    "icon": "MessageSquare",
+    "config": {
+      "title": "Trusted by Professionals Worldwide",
+      "testimonials": [
+        {
+          "content": "advocate transformed how I network at conferences. I've collected 300% more contacts and my follow-up rate increased dramatically.",
+          "name": "Sarah Johnson",
+          "role": "Sales Director, TechCorp",
+          "title": "Game-changer for networking"
+        },
+        {
+          "content": "The analytics feature helps me understand which networking events are most effective. It's like having a CRM built into my business card.",
+          "name": "Michael Chen",
+          "role": "Marketing Manager, StartupXYZ",
+          "title": "Invaluable insights"
+        },
+        {
+          "content": "Our entire sales team uses advocate. The professional impression it creates with clients is incredible, and setup was effortless.",
+          "name": "Emily Rodriguez",
+          "role": "VP Sales, Enterprise Solutions",
+          "title": "Professional and efficient"
+        },
+        {
+          "content": "I love how my information stays current everywhere. No more embarrassing moments with outdated contact details on old business cards.",
+          "name": "David Park",
+          "role": "Consultant, Business Strategy",
+          "title": "Always up-to-date"
+        }
+      ]
+    }
+  },
+  {
+    "id": "cta-1",
+    "type": "cta",
+    "name": "Call to Action",
+    "icon": "Zap",
+    "config": {
+      "title": "Ready to Transform Your Networking?",
+      "description": "Join 50,000+ professionals who've revolutionized their networking. Create your professional vCard in under 2 minutes.",
+      "buttonText": "Start Free Trial"
+    }
+  },
+  {
+    "id": "contact-1",
+    "type": "contact",
+    "name": "Contact",
+    "icon": "Mail",
+    "config": {
+      "title": "Get in Touch",
+      "description": "Have questions about advocate? Our team is here to help you get started with digital business cards.",
+      "email": "hello@advocate.com",
+      "phone": "+1 (555) 123-4567",
+      "address": "123 Innovation Drive, Tech City, TC 12345"
+    }
+  },
+  {
+    "id": "footer-1",
+    "type": "footer",
+    "name": "Footer",
+    "icon": "Minus",
+    "config": {
+      "companyName": "advocate",
+      "description": "The future of professional networking. Create, share, and manage your digital business cards with ease.",
+      "links": [
+        {
+          "title": "Features",
+          "url": "/features"
+        },
+        {
+          "title": "Pricing",
+          "url": "/pricing"
+        },
+        {
+          "title": "Templates",
+          "url": "/templates"
+        },
+        {
+          "title": "Support",
+          "url": "/support"
+        },
+        {
+          "title": "Privacy Policy",
+          "url": "/privacy"
+        },
+        {
+          "title": "Terms of Service",
+          "url": "/terms"
+        }
+      ],
+      "socialLinks": [
+        {
+          "platform": "Twitter",
+          "url": "https://twitter.com/advocate"
+        },
+        {
+          "platform": "LinkedIn",
+          "url": "https://linkedin.com/company/advocate"
+        },
+        {
+          "platform": "Facebook",
+          "url": "https://facebook.com/advocate"
+        }
+      ]
+    }
+  }
+]
